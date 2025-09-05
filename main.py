@@ -36,3 +36,9 @@ while not game_exit:
     clock.tick(30)
 
 pg.quit()
+
+def main():
+    pass
+
+if __name__ == "__main__":
+    main()
