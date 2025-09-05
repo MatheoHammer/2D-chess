@@ -3,7 +3,6 @@ import pygame as pg
 from config.constants import *
 from objects.Pieces import *
 
-
 def create_default_position():
     row1_black = [Rook(0,0,"b"), Knight(1,0,"b"), Bishop(2,0,"b"), Queen(3,0,"b"), King(4,0,"b"), Bishop(5,0,"b"), Knight(6,0,"b"), Rook(7,0,"b")]
     pawn_row_black = []
@@ -30,9 +29,6 @@ def draw_pieces(board, surface):
             if (board[y][x]):
                 board[y][x].draw(surface)
 
-screen = pg.display.set_mode((0, 0),pg.RESIZABLE)
-clock = pg.time.Clock()
-
 def create_background():
     colors = itertools.cycle((WHITE, BLACK))
     background = pg.Surface((BOARD_DIMENTION, BOARD_DIMENTION))
@@ -53,9 +49,10 @@ def main():
     board = create_default_position()
     print(board)
 
-    screen.fill((60, 70, 90))
-    draw_pieces(board, background)
-    screen.blit(background, (WIDTH/2-HEIGHT*0.7/2, HEIGHT*0.15))
+
+    screen = pg.display.set_mode((0, 0),pg.RESIZABLE)
+    clock = pg.time.Clock()
+
 
     while running:
         for event in pg.event.get():
@@ -65,6 +62,9 @@ def main():
                 if event.key ==pg.K_ESCAPE:
                     running = False
 
+        screen.fill((60, 70, 90))
+        draw_pieces(board, background)
+        screen.blit(background, (WIDTH/2-HEIGHT*0.7/2, HEIGHT*0.15))
 
         pg.display.flip()
         clock.tick(30)
