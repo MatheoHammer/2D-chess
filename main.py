@@ -1,23 +1,30 @@
 import itertools
 import pygame as pg
 
+
+def get_screen_dimentions():
+    info = pg.display.Info()
+    return info.current_w, info.current_h
+
 pg.init()
 
-BLACK = pg.Color('black')
-WHITE = pg.Color('white')
+BLACK = pg.Color('#623f33')
+WHITE = pg.Color('#f7cd90')
+WIDTH, HEIGHT = get_screen_dimentions()
+TILE_SIZE = int(HEIGHT*0.7/8)
+BOARD_DIMENTION=TILE_SIZE*8
 
-screen = pg.display.set_mode((500, 500))
+screen = pg.display.set_mode((0, 0),pg.RESIZABLE)
 clock = pg.time.Clock()
+
 
 def create_background():
     colors = itertools.cycle((WHITE, BLACK))
-    tile_size = 40
-    width, height = 8*tile_size, 8*tile_size
-    background = pg.Surface((width, height))
+    background = pg.Surface((BOARD_DIMENTION, BOARD_DIMENTION))
 
-    for y in range(0, height, tile_size):
-        for x in range(0, width, tile_size):
-            rect = (x, y, tile_size, tile_size)
+    for y in range(0, BOARD_DIMENTION, TILE_SIZE):
+        for x in range(0, BOARD_DIMENTION, TILE_SIZE):
+            rect = (x, y, TILE_SIZE, TILE_SIZE)
             pg.draw.rect(background, next(colors), rect)
         next(colors)
 
@@ -32,9 +39,12 @@ def main():
         for event in pg.event.get():
             if event.type == pg.QUIT:
                 running = False
+            elif event.type == pg.KEYDOWN: 
+                if event.key ==pg.K_ESCAPE:
+                    running = False
 
         screen.fill((60, 70, 90))
-        screen.blit(background, (100, 100))
+        screen.blit(background, (WIDTH/2-HEIGHT*0.7/2, HEIGHT*0.15))
 
         pg.display.flip()
         clock.tick(30)
