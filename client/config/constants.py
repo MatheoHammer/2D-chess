@@ -3,7 +3,7 @@ pg.init()
 
 def get_screen_dimentions():
     info = pg.display.Info()
-    return info.current_w, info.current_h
+    return info.current_w/2, info.current_h/2
 
 BLACK = pg.Color('#623f33')
 WHITE = pg.Color('#f7cd90')
@@ -17,3 +17,6 @@ KING = "k"
 QUEEN = "q"
 BISHOP = "b"
 ROOK = "r"
+
+HOST = "127.0.0.1"
+PORT = 5000

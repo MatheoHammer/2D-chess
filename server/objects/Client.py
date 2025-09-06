@@ -11,33 +11,38 @@ class Client:
         self.in_game = False
         self.message_handler = self.lobby_handler
 
-        self.listen()
-        threading.Thread(target=self.listen, daemon=True).start()
+        threading.Thread(target=self.listen).start()
 
     def start_game(self, game, piece_color):
+        print(f"starting game for {piece_color}, name {self.name}")
         self.game = game
-        self.message_handler = self.game_handler
         self.in_game = True
         self.searching_match = False
         self.piece_color = piece_color
 
+        self.socket.send(piece_color.encode())
+        
+        if piece_color == "w":
+            self.message_handler = self.game.move
+        else:
+            self.message_handler = None
+
     def lobby_handler(self, message):
         if message == "search_match" and not self.in_game:
             self.searching_match = True
-    
-    def game_handler(self, message):
-        if message == "move":
-            print("move")
 
     def listen(self):
         while self.should_listen:
             try:
+                print("listening to client")
                 message = self.socket.recv(1024).decode()
+                print(message + " sent from client")
 
                 if not message:
                     break
 
-                self.message_handler(message)
+                if self.message_handler:
+                    self.message_handler(message)
 
             except ConnectionResetError:
                 break

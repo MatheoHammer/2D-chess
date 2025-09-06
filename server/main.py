@@ -9,6 +9,7 @@ clients = []
 chess_games = []
 
 def matchmake():
+    print("matchmaking")
     player1 = None
     player2 = None
 
@@ -18,7 +19,7 @@ def matchmake():
             break
 
     for client in clients:
-        if client.searching_match:
+        if client.searching_match and not client == player1:
             player2 = client
             break
 
@@ -32,6 +33,7 @@ def handshake(client, address):
     try:
         client.settimeout(10)
         name = client.recv(1024).decode()
+        print(name)
         client.settimeout(None)
     except socket.timeout:
         return False
@@ -53,6 +55,8 @@ def start_server(host, port):
         print(f"New connection from {client_address}")
 
         client = handshake(client_socket, client_address)
+        client_socket.send("success".encode())
+        print("handshake complete")
 
         if (not client):
             client_socket.close()
@@ -60,7 +64,7 @@ def start_server(host, port):
 
         clients.append(client)
 
-
+        matchmake()
 
 if __name__ == "__main__":
     start_server(HOST, PORT)

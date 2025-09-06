@@ -1,6 +1,6 @@
 import random
-from Pieces import *
-from Client import *
+from objects.Pieces import *
+from objects.Client import Client
 
 class Chess:
     def __init__(self, player1:Client, player2:Client):
@@ -17,10 +17,22 @@ class Chess:
         self.black.start_game(self, "b")
 
         self.turn = self.white
+        self.not_turn = self.black
 
         self.board = self.create_default_position()
+        self.game_running = False
+
+    def move(self, move):
+        print(move)
+
+        self.not_turn.socket.send(f"player has moved to {move}".encode())
+
+        self.turn, self.not_turn = self.not_turn, self.turn
+        self.turn.message_handler = self.move
+        self.not_turn.message_handler = None
 
     def broadcast(self, message):
+        message = message.encode()
         self.white.socket.send(message)
         self.black.socket.send(message)
 

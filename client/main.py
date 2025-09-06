@@ -1,25 +1,31 @@
 import itertools
 import pygame as pg
+import socket
 from config.constants import *
 from objects.Pieces import *
 
-def create_default_position():
-    row1_black = [Rook(0,0,"b"), Knight(1,0,"b"), Bishop(2,0,"b"), Queen(3,0,"b"), King(4,0,"b"), Bishop(5,0,"b"), Knight(6,0,"b"), Rook(7,0,"b")]
-    pawn_row_black = []
-    for i in range(8):
-        pawn_row_black.append(Pawn(i,1,"b"))
+def create_default_position(color):
+    if color == "w":
+        dir = ("w", "b")
+    else:
+        dir = ("b", "w")
 
-    row1_white = [Rook(0,7,"w"), Knight(1,7,"w"), Bishop(2,7,"w"), Queen(3,7,"w"), King(4,7,"w"), Bishop(5,7,"w"), Knight(6,7,"w"), Rook(7,7,"w")]
-    pawn_row_white = []
+    opposite_row1 = [Rook(0,0,dir[1]), Knight(1,0,dir[1]), Bishop(2,0,dir[1]), Queen(3,0,dir[1]), King(4,0,dir[1]), Bishop(5,0,dir[1]), Knight(6,0,dir[1]), Rook(7,0,dir[1])]
+    opposite_pawn_row = []
     for i in range(8):
-        pawn_row_white .append(Pawn(i,6,"w"))
+        opposite_pawn_row.append(Pawn(i,1,dir[1]))
 
-    board = [row1_black, pawn_row_black]
+    home_row1 = [Rook(0,7,dir[0]), Knight(1,7,dir[0]), Bishop(2,7,dir[0]), Queen(3,7,dir[0]), King(4,7,dir[0]), Bishop(5,7,dir[0]), Knight(6,7,dir[0]), Rook(7,7,dir[0])]
+    home_pawn_row = []
+    for i in range(8):
+        home_pawn_row.append(Pawn(i,6,dir[0]))
+
+    board = [opposite_row1, opposite_pawn_row]
     for i in range(4):
         board.append([None for _ in range(8)])
 
-    board.append(pawn_row_white)
-    board.append(row1_white)
+    board.append(home_pawn_row)
+    board.append(home_row1)
 
     return board
 
@@ -42,18 +48,31 @@ def create_background():
     return background
 
 def main():
-    running = True
 
+    name = input("Name: ")
+
+    connection = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    connection.connect((HOST, PORT))
+
+    connection.send(name.encode())
+
+    handshake_status = connection.recv(1024).decode()
+
+    if handshake_status == "falsey":
+        return
+
+    connection.send("search_match".encode())
+
+    color = connection.recv(1024).decode()
+    print(color)
+
+    board = create_default_position(color)
     background = create_background()
 
-    board = create_default_position()
-    print(board)
-
-
-    screen = pg.display.set_mode((0, 0),pg.RESIZABLE)
+    screen = pg.display.set_mode((WIDTH, HEIGHT))
     clock = pg.time.Clock()
 
-
+    running = True
     while running:
         for event in pg.event.get():
             if event.type == pg.QUIT:
