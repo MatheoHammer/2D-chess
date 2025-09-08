@@ -1,6 +1,6 @@
 import itertools
 import pygame as pg
-import socket
+from objects.Connection import Connection
 from config.constants import *
 from objects.Pieces import *
 
@@ -29,64 +29,89 @@ def create_default_position(color):
 
     return board
 
-def draw_pieces(board, surface):
-    for y in range(8):
-        for x in range(8):
-            if (board[y][x]):
-                board[y][x].draw(surface)
-
-def create_background():
+def create_board():
     colors = itertools.cycle((WHITE, BLACK))
-    background = pg.Surface((BOARD_DIMENTION, BOARD_DIMENTION))
+    board = pg.Surface((BOARD_DIMENTION, BOARD_DIMENTION))
 
     for y in range(0, BOARD_DIMENTION, TILE_SIZE):
         for x in range(0, BOARD_DIMENTION, TILE_SIZE):
             rect = (x, y, TILE_SIZE, TILE_SIZE)
-            pg.draw.rect(background, next(colors), rect)
+            pg.draw.rect(board, next(colors), rect)
         next(colors)
 
-    return background
+    return board 
 
-def main():
+def draw_pieces(pieces, surface):
+    for y in range(8):
+        for x in range(8):
+            if (pieces[y][x]):
+                pieces[y][x].draw(surface)
 
-    name = input("Name: ")
+def draw_board(board, surface):
+    surface.blit(board, (BOARD_OFFSET_X, BOARD_OFFSET_Y))
 
-    connection = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    connection.connect((HOST, PORT))
-
-    connection.send(name.encode())
-
-    handshake_status = connection.recv(1024).decode()
-
-    if handshake_status == "falsey":
-        return
-
-    connection.send("search_match".encode())
-
-    color = connection.recv(1024).decode()
-    print(color)
-
-    board = create_default_position(color)
-    background = create_background()
+def gameloop(color):
+    pieces = create_default_position(color)
+    board = create_board()
 
     screen = pg.display.set_mode((WIDTH, HEIGHT))
     clock = pg.time.Clock()
 
     running = True
+    hovering_piece = None
     while running:
         for event in pg.event.get():
             if event.type == pg.QUIT:
                 running = False
+
             elif event.type == pg.KEYDOWN: 
-                if event.key ==pg.K_ESCAPE:
+                if event.key == pg.K_ESCAPE:
                     running = False
 
+            elif event.type == pg.MOUSEBUTTONDOWN and event.button == 1:
+                mouse_pos = pg.mouse.get_pos()
+                for row in pieces:
+                    for piece in row:
+                        if piece and piece.is_hovered(mouse_pos) and not hovering_piece:
+                            print("piece hovering")
+                            piece.hovering = True
+                            hovering_piece = piece
+
+            elif event.type == pg.MOUSEBUTTONUP and event.button == 1 and hovering_piece:
+                print("piece not hovering")
+                hovering_piece.hovering = False
+                hovering_piece = None
+
         screen.fill((60, 70, 90))
-        draw_pieces(board, background)
-        screen.blit(background, (WIDTH/2-HEIGHT*0.7/2, HEIGHT*0.15))
+        draw_board(board, screen)
+        draw_pieces(pieces, screen)
+
+        if hovering_piece:
+            mouse_pos = pg.mouse.get_pos()
+            rect = hovering_piece.image_surface.get_rect(center=mouse_pos)
+            screen.blit(hovering_piece.image_surface, rect)
 
         pg.display.flip()
-        clock.tick(30)
+        clock.tick(60)
+
+def main():
+    name = input("Name: ")
+
+    connection = Connection(HOST, PORT)
+    success = connection.connect(name)
+
+    if not success:
+        print("Could not connect to server")
+        return
+
+    connection.send(SEARCH_GAME)
+
+    packet = connection.receive()
+
+    if packet["type"] == GAME_FOUND:
+        color = packet["payload"]
+        print(f"Found game, color:{color}")
+        gameloop(color)
 
     pg.quit()
 

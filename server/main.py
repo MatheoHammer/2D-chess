@@ -1,33 +1,35 @@
 import socket
+import time
+import threading
 from objects.Client import Client
 from objects.Chess import Chess
-
-HOST = "127.0.0.1"
-PORT = 5000
+from config.constants import *
 
 clients = []
 chess_games = []
 
 def matchmake():
-    print("matchmaking")
-    player1 = None
-    player2 = None
+    while True:
+        time.sleep(3)
+        print(matchmake, clients)
+        player1 = None
+        player2 = None
 
-    for client in clients:
-        if client.searching_match:
-            player1 = client
-            break
+        for client in clients:
+            if client.searching_match:
+                player1 = client
+                break
 
-    for client in clients:
-        if client.searching_match and not client == player1:
-            player2 = client
-            break
+        for client in clients:
+            if client.searching_match and not client == player1:
+                player2 = client
+                break
 
-    if not player1 or not player2:
-        return
+        if not player1 or not player2:
+            continue
 
-    game = Chess(player1, player2)
-    chess_games.append(game)
+        game = Chess(player1, player2)
+        chess_games.append(game)
 
 def handshake(client, address):
     try:
@@ -35,6 +37,7 @@ def handshake(client, address):
         name = client.recv(1024).decode()
         print(name)
         client.settimeout(None)
+
     except socket.timeout:
         return False
 
@@ -48,6 +51,8 @@ def start_server(host, port):
     server.bind((host, port))
     server.listen()
 
+    threading.Thread(target=matchmake).start()
+
     print(f"Server started on {host}:{port}")
 
     while True:
@@ -55,16 +60,14 @@ def start_server(host, port):
         print(f"New connection from {client_address}")
 
         client = handshake(client_socket, client_address)
-        client_socket.send("success".encode())
-        print("handshake complete")
-
         if (not client):
             client_socket.close()
             continue
 
-        clients.append(client)
+        client.send(SUCCESS)
+        print("handshake complete")
 
-        matchmake()
+        clients.append(client)
 
 if __name__ == "__main__":
     start_server(HOST, PORT)
