@@ -50,6 +50,29 @@ def draw_pieces(pieces, surface):
 def draw_board(board, surface):
     surface.blit(board, (BOARD_OFFSET_X, BOARD_OFFSET_Y))
 
+def handle_event(event, pieces, hovering_piece, running):
+    if event.type == pg.QUIT:
+        running = False
+
+    elif event.type == pg.KEYDOWN: 
+        if event.key == pg.K_ESCAPE:
+            running = False
+
+    elif event.type == pg.MOUSEBUTTONDOWN and event.button == 1:
+        mouse_pos = pg.mouse.get_pos()
+        for row in pieces:
+            for piece in row:
+                if piece and piece.is_hovered(mouse_pos) and not hovering_piece:
+                    print("piece hovering")
+                    piece.hovering = True
+                    hovering_piece = piece
+
+    elif event.type == pg.MOUSEBUTTONUP and event.button == 1 and hovering_piece:
+        print("piece not hovering")
+        hovering_piece.hovering = False
+        hovering_piece = None
+
+
 def gameloop(color):
     pieces = create_default_position(color)
     board = create_board()
@@ -61,26 +84,7 @@ def gameloop(color):
     hovering_piece = None
     while running:
         for event in pg.event.get():
-            if event.type == pg.QUIT:
-                running = False
-
-            elif event.type == pg.KEYDOWN: 
-                if event.key == pg.K_ESCAPE:
-                    running = False
-
-            elif event.type == pg.MOUSEBUTTONDOWN and event.button == 1:
-                mouse_pos = pg.mouse.get_pos()
-                for row in pieces:
-                    for piece in row:
-                        if piece and piece.is_hovered(mouse_pos) and not hovering_piece:
-                            print("piece hovering")
-                            piece.hovering = True
-                            hovering_piece = piece
-
-            elif event.type == pg.MOUSEBUTTONUP and event.button == 1 and hovering_piece:
-                print("piece not hovering")
-                hovering_piece.hovering = False
-                hovering_piece = None
+            handle_event(event, pieces, hovering_piece, running)
 
         screen.fill((60, 70, 90))
         draw_board(board, screen)
