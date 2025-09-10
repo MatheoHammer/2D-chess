@@ -21,6 +21,9 @@ class Piece:
 
     def draw(self, surface):
         if self.hovering:
+            mouse_pos = pg.mouse.get_pos()
+            rect = self.image_surface.get_rect(center=mouse_pos)
+            surface.blit(self.image_surface, rect)
             return
 
         pos_x = self.x * TILE_SIZE + (TILE_SIZE - self.rect.width) // 2 + BOARD_OFFSET_X

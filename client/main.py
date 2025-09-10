@@ -71,6 +71,8 @@ def handle_event(event, pieces, hovering_piece, running):
         print("piece not hovering")
         hovering_piece.hovering = False
         hovering_piece = None
+    
+    return hovering_piece, running
 
 
 def gameloop(color):
@@ -84,16 +86,11 @@ def gameloop(color):
     hovering_piece = None
     while running:
         for event in pg.event.get():
-            handle_event(event, pieces, hovering_piece, running)
+            hovering_piece, running = handle_event(event, pieces, hovering_piece, running)
 
         screen.fill((60, 70, 90))
         draw_board(board, screen)
         draw_pieces(pieces, screen)
-
-        if hovering_piece:
-            mouse_pos = pg.mouse.get_pos()
-            rect = hovering_piece.image_surface.get_rect(center=mouse_pos)
-            screen.blit(hovering_piece.image_surface, rect)
 
         pg.display.flip()
         clock.tick(60)
