@@ -11,7 +11,6 @@ chess_games = []
 def matchmake():
     while True:
         time.sleep(3)
-        print(matchmake, clients)
         player1 = None
         player2 = None
 
