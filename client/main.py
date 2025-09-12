@@ -51,7 +51,7 @@ def draw_pieces(pieces, surface):
 def draw_board(board, surface):
     surface.blit(board, (BOARD_OFFSET_X, BOARD_OFFSET_Y))
 
-def handle_event(event, pieces, hovering_piece, running):
+def handle_event(event, pieces, hovering_piece, running,surface):
     if event.type == pg.QUIT:
         running = False
 
@@ -59,7 +59,8 @@ def handle_event(event, pieces, hovering_piece, running):
         if event.key == pg.K_ESCAPE:
             running = False
         elif event.key == pg.K_p:
-            start_pvp()
+            running=False
+            start_pvp(surface)
 
 
     elif event.type == pg.MOUSEBUTTONDOWN and event.button == 1:
@@ -90,9 +91,11 @@ def gameloop(color):
     hovering_piece = None
     while running:
         for event in pg.event.get():
-            hovering_piece, running = handle_event(event, pieces, hovering_piece, running)
-
-        screen.fill((60, 70, 90))
+            hovering_piece, running = handle_event(event, pieces, hovering_piece, running,screen)
+        if not running:
+            print("stopping to runn")
+            break
+        screen.fill(BACKGROUND_COLOR)
         draw_board(board, screen)
         draw_pieces(pieces, screen)
 

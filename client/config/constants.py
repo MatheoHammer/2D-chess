@@ -8,6 +8,7 @@ def get_screen_dimentions():
 #Colors
 BLACK = pg.Color('#623f33')
 WHITE = pg.Color('#f7cd90')
+BACKGROUND_COLOR = (60, 70, 90)
 
 #Global dimentions
 WIDTH, HEIGHT = get_screen_dimentions()
