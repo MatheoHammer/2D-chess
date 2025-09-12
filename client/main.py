@@ -3,6 +3,7 @@ import pygame as pg
 from objects.Connection import Connection
 from config.constants import *
 from objects.Pieces import *
+from pvp import *
 
 def create_default_position(color):
     if color == "w":
@@ -57,6 +58,9 @@ def handle_event(event, pieces, hovering_piece, running):
     elif event.type == pg.KEYDOWN: 
         if event.key == pg.K_ESCAPE:
             running = False
+        elif event.key == pg.K_p:
+            start_pvp()
+
 
     elif event.type == pg.MOUSEBUTTONDOWN and event.button == 1:
         mouse_pos = pg.mouse.get_pos()
