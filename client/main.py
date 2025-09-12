@@ -3,7 +3,7 @@ import pygame as pg
 from objects.Connection import Connection
 from config.constants import *
 from objects.Pieces import *
-from pvp import *
+from pvp import start_pvp
 
 def create_default_position(color):
     if color == "w":
