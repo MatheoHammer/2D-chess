@@ -23,12 +23,12 @@ class Chess:
         self.game_running = False
     
     def get_valid_moves(self, color):
-        valid_moves = []
-        for row in self.board:
-            for piece in row:
-                if piece:
-                    if piece.type == PAWN or piece.type == ROOK:
-                        valid_moves.append(piece.get_valid_moves(self.board))
+        valid_moves = [[None for _ in range(8)] for _ in range(8)]
+
+        for y in range(len(self.board)):
+            for x in range(len(self.board[y])):
+                if self.board[y][x] != None and self.board[y][x].color == color:
+                    valid_moves[y][x] = self.board[y][x].get_valid_moves(self.board)
         
         return valid_moves
 
@@ -48,8 +48,10 @@ class Chess:
         self.black.socket.send(message)
 
     def create_default_position(self):
-        row1_black = [Rook(0,0,"b")] + [None for _ in range(7)]
-        pawn_row_black = [None for _ in range(8)]
+        row1_black = [Rook(0,0,"b"), Knight(1,0,"b"), Bishop(2,0,"b"), Queen(3,0,"b"), King(4,0,"b"), Bishop(5,0,"b"), Knight(6,0,"b"), Rook(7,0,"b")]
+        pawn_row_black = []
+        for i in range(8):
+            pawn_row_black.append(Pawn(i,1,"b"))
 
         row1_white = [Rook(0,7,"w"), Knight(1,7,"w"), Bishop(2,7,"w"), Queen(3,7,"w"), King(4,7,"w"), Bishop(5,7,"w"), Knight(6,7,"w"), Rook(7,7,"w")]
         pawn_row_white = []

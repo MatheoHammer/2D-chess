@@ -6,102 +6,154 @@ class Piece:
         self.y = y
         self.color = color
         self.type = type_code
+        self.moved = False
+
+    def get_diagonal_moves(self, board):
+        moves = []
+        directions = [(1, 1), (1, -1), (-1, 1), (-1, -1)]
+
+        for dx, dy in directions:
+            nx, ny = self.x, self.y
+            while True:
+                nx += dx
+                ny += dy
+
+                # Out of bounds
+                if not (0 <= nx < len(board[0]) and 0 <= ny < len(board)):
+                    break
+
+                target = board[ny][nx]
+                if target is None:
+                    moves.append((nx, ny))
+                else:
+                    if target.color != self.color:
+                        moves.append((nx, ny))  # capture
+                    break
+
+        return moves
     
-    def get_possible_horizontal_moves(self, board):
-        possible_moves = []
-        x_offset_right = self.x
-        x_offset_left = 7-self.x
+    def get_straight_moves(self, board):
+        moves = []
+        directions = [(1, 0), (-1, 0), (0, 1), (0, -1)]
 
-        for x in range(x_offset_right, 0, -1):
-            if not board[self.y][x]:
-                possible_moves.append((x-self.x, 0))
-            
-            elif board[self.y][x].color == self.color:
-                break
-            
-            else:
-                possible_moves.append((x-self.x, 0))
+        for dx, dy in directions:
+            nx, ny = self.x, self.y
+            while True:
+                nx += dx
+                ny += dy
 
-        for x in range(self.x+1, x_offset_left+1, 1):
-            if not board[self.y][x]:
-                possible_moves.append((x-self.x, 0))
-            
-            elif board[self.y][x].color == self.color:
-                break
-            
-            else:
-                possible_moves.append((x-self.x, 0))
-        
-        return possible_moves
+                # Out of bound
+                if not (0 <= nx < len(board[0]) and 0 <= ny < len(board)):
+                    break
 
-    def get_possible_vertical_moves(self, board):
-        possible_moves = []
-        y_offset_top = self.y
-        y_offset_bottom = 7-self.y
+                target = board[ny][nx]
 
-        for y in range(y_offset_top, 0, -1):
-            if not board[y][self.x]:
-                possible_moves.append((0, y-self.y))
-            
-            elif board[y][self.x].color == self.color:
-                break
-            
-            else:
-                possible_moves.append((0, y-self.y))
+                if target is None:
+                    moves.append((nx, ny))
+                else:
+                    if target.color != self.color:
+                        moves.append((nx, ny)) #capture
+                    break
 
-        for y in range(self.y+1, y_offset_bottom+1, 1):
-            if not board[y][self.x]:
-                possible_moves.append((0, y-self.y))
-            
-            elif board[y][self.x].color == self.color:
-                break
-            
-            else:
-                possible_moves.append((0, y-self.y))
-        
-        return possible_moves
+        return moves
+
 
 
 class Pawn(Piece):
     def __init__(self, x, y, color):
         super().__init__(x, y, color, PAWN)
-    
-    def get_valid_moves(self, board):
-        if self.color == "b":
-            possible_moves = [(0, 1), (0, 2)]
-        else:
-            possible_moves = [(0, -1), (0, -2)]
-        
-        valid_moves = {"original_pos":(self.x, self.y), "moves":[]}
 
-        for move in possible_moves:
-            if not board[self.y+move[1]][self.x+move[0]]:
-                valid_moves["moves"].append(move)
-        
-        return valid_moves
+    def get_valid_moves(self, board):
+        moves = []
+        direction = -1 if self.color == "w" else 1
+
+        nx, ny = self.x, self.y + direction
+        if 0 <= ny < len(board) and board[ny][nx] is None:
+            moves.append((nx, ny))
+
+            # Two steps ahead
+            if not self.moved:
+                ny2 = ny + direction
+                if board[ny2][nx] is None:
+                    moves.append((nx, ny2))
+
+        # Diagonal captures
+        for dx in (-1, 1):
+            nx, ny = self.x + dx, self.y + direction
+            if 0 <= nx < len(board[0]) and 0 <= ny < len(board):
+                target = board[ny][nx]
+                if target is not None and target.color != self.color:
+                    moves.append((nx, ny))
+
+        return moves
 
 class Rook(Piece):
     def __init__(self, x, y, color):
         super().__init__(x, y, color, ROOK)
 
     def get_valid_moves(self, board):
-        valid_moves = {"original_pos":(self.x, self.y), "moves":[]}
-        valid_moves["moves"] = self.get_possible_horizontal_moves(board)
-        valid_moves["moves"] += self.get_possible_vertical_moves(board)
-        
-        return valid_moves
+        return self.get_straight_moves(board)
+
 class Queen(Piece):
     def __init__(self, x, y, color):
         super().__init__(x, y, color, QUEEN)
+
+    def get_valid_moves(self, board):
+        return self.get_straight_moves(board) + self.get_diagonal_moves(board)
 
 class King(Piece):
     def __init__(self, x, y, color):
         super().__init__(x, y, color, KING)
 
+    def get_valid_moves(self, board):
+        moves = []
+        directions = [
+            (0, 1), (0, -1), (1, 0), (-1, 0),
+            (1, 1), (-1, -1), (1, -1), (-1, 1)
+        ]
+
+        for dx, dy in directions:
+            nx, ny = self.x + dx, self.y + dy
+
+            # Out of bounds
+            if not (0 <= nx < len(board[0]) and 0 <= ny < len(board)):
+                continue
+
+            target = board[ny][nx]
+            if target is None:
+                moves.append((nx, ny))
+            elif target.color != self.color:
+                moves.append((nx, ny))
+
+        return moves
+
 class Knight(Piece):
     def __init__(self, x, y, color):
         super().__init__(x, y, color, KNIGHT)
 
+    def get_valid_moves(self, board):
+        moves = []
+        directions = [
+            (2, 1), (2, -1), (-2, 1), (-2, -1),
+            (1, 2), (1, -2), (-1, 2), (-1, -2)
+        ]
+
+        for dx, dy in directions:
+            nx, ny = self.x + dx, self.y + dy
+
+            # Out of bounds
+            if not (0 <= nx < len(board[0]) and 0 <= ny < len(board)):
+                continue
+
+            target = board[ny][nx]
+            if target is None or target.color != self.color:
+                moves.append((nx, ny))
+
+        return moves
+
 class Bishop(Piece):
     def __init__(self, x, y, color):
         super().__init__(x, y, color, BISHOP)
+
+    def get_valid_moves(self, board):
+        return self.get_diagonal_moves(board)
